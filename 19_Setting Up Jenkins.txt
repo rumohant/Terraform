@@ -1,0 +1,114 @@
+In this lesson, we will take the Jenkins image we built in the previous lesson, and deploy a Docker container using Terraform.
+
+Edit main.tf:
+
+vi main.tf
+main.tf contents:
+
+# Jenkins Volume
+resource "docker_volume" "jenkins_volume" {
+  name = "jenkins_data"
+}
+
+# Start the Jenkins Container
+resource "docker_container" "jenkins_container" {
+  name  = "jenkins"
+  image = "jenkins:terraform"
+  ports {
+    internal = "8080"
+    external = "8080"
+  }
+
+  volumes {
+    volume_name    = "${docker_volume.jenkins_volume.name}"
+    container_path = "/var/jenkins_home"
+  }
+
+  volumes {
+    host_path      = "/var/run/docker.sock"
+    container_path = "/var/run/docker.sock"
+  }
+}
+Initialize Terraform:
+
+terraform init
+Plan the deployment:
+
+terraform plan -out=tfplan
+Deploy Jenkins:
+
+terraform apply tfplan
+Get the Admin password:
+
+docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+
+
+*****************************************************************************************
+
+Step1--------------------> ubuntu@ip-172-31-1-34:~/jenkins$ vi main.tf
+
+# Jenkins Volume
+resource "docker_volume" "jenkins_volume" {
+  name = "jenkins_data"
+}
+
+# Start the Jenkins Container
+resource "docker_container" "jenkins_container" {
+  name  = "jenkins"
+  image = "jenkins:terraform"
+  ports {
+    internal = "8080"
+    external = "9090"
+  }
+
+  volumes {
+    volume_name    = "${docker_volume.jenkins_volume.name}"
+    container_path = "/var/jenkins_home"
+  }
+
+  volumes {
+    host_path      = "/var/run/docker.sock"
+    container_path = "/var/run/docker.sock"
+  }
+}
+
+Step2------->
+ubuntu@ip-172-31-1-34:~/jenkins$ terraform init
+
+Initializing the backend...
+
+Initializing provider plugins...
+- Checking for available provider plugins...
+- Downloading plugin for provider "docker" (terraform-providers/docker) 2.6.0...
+
+The following providers do not have any version constraints in configuration,
+so the latest version was installed.
+
+To prevent automatic upgrades to new major versions that may contain breaking
+changes, it is recommended to add version = "..." constraints to the
+corresponding provider blocks in configuration, with the constraint strings
+suggested below.
+
+* provider.docker: version = "~> 2.6"
+
+Terraform has been successfully initialized!
+
+You may now begin working with Terraform. Try running "terraform plan" to see
+any changes that are required for your infrastructure. All Terraform commands
+should now work.
+
+If you ever set or change modules or backend configuration for Terraform,
+rerun this command to reinitialize your working directory. If you forget, other
+commands will detect it and remind you to do so if necessary.
+ubuntu@ip-172-31-1-34:~/jenkins$ terraform validate
+Success! The configuration is valid.
+
+
+Step3------> ubuntu@ip-172-31-1-34:~/jenkins$ terraform plan -out=tfplan
+
+Step4-------> ubuntu@ip-172-31-1-34:~/jenkins$ terraform apply tfplan
+
+STep5---> ubuntu@ip-172-31-1-34:~/jenkins$ docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+
+f9ba58203cfa40ea86bb5e3bf70ba121
+

@@ -1,0 +1,74 @@
+Here, we will learn how to build a Jenkins Docker image that has Docker and Terraform baked in. We will be using this image throughout the remainder of this section.
+
+Setup the environment:
+
+mkdir -p jenkins
+Create Dockerfile:
+
+vi Dockerfile
+Dockerfile contents:
+
+FROM jenkins/jenkins:lts
+USER root
+RUN apt-get update -y && apt-get -y install apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+RUN curl -fsSL https://download.docker.com/linux/$(. /etc/os-release; echo "$ID")/gpg > /tmp/dkey; apt-key add /tmp/dkey
+RUN add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") $(lsb_release -cs) stable"
+RUN apt-get update -y
+RUN apt-get install -y docker-ce docker-ce-cli containerd.io
+RUN curl -O https://releases.hashicorp.com/terraform/0.11.13/terraform_0.11.13_linux_amd64.zip && unzip terraform_0.11.13_linux_amd64.zip -d /usr/local/bin/
+USER ${user}
+Build the Image:
+
+docker build -t jenkins:terraform .
+List the Docker images:
+
+docker image ls
+
+Jenkins Dockerfile
+https://github.com/jenkinsci/docker/blob/master/Dockerfile
+
+**********************************************
+Step 1-------> ubuntu@ip-172-31-1-34:~$ mkdir -p jenkins
+ubuntu@ip-172-31-1-34:~$ cd jenkins
+ubuntu@ip-172-31-1-34:~/jenkins$ vi Dockerfile
+
+FROM jenkins/jenkins:lts
+USER root
+RUN apt-get update -y && apt-get -y install apt-transport-https ca-certificates curl gnupg-agent software-properties-common
+RUN curl -fsSL https://download.docker.com/linux/$(. /etc/os-release; echo "$ID")/gpg > /tmp/dkey; apt-key add /tmp/dkey
+RUN add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") $(lsb_release -cs) stable"
+RUN apt-get update -y
+RUN apt-get install -y docker-ce docker-ce-cli containerd.io
+RUN curl -O https://releases.hashicorp.com/terraform/0.11.13/terraform_0.11.13_linux_amd64.zip && unzip terraform_0.11.13_linux_amd64.zip -d /usr/local/bin/
+USER ${user}
+
+Step2-------> ubuntu@ip-172-31-1-34:~/jenkins$ terraform init
+Terraform initialized in an empty directory!
+
+The directory has no Terraform configuration files. You may begin working
+with Terraform immediately by creating Terraform configuration files.
+ubuntu@ip-172-31-1-34:~/jenkins$ terraform validate
+Success! The configuration is valid.
+
+
+Step3--------->ubuntu@ip-172-31-1-34:~/jenkins$ docker build -t jenkins:terraform .
+Sending build context to Docker daemon   2.56kB
+Step 1/9 : FROM jenkins/jenkins:lts
+lts: Pulling from jenkins/jenkins
+9a0b0ce99936: Pull complete
+db3b6004c61a: Pull complete
+f8f075920295: Pull complete
+6ef14aff1139: Pull complete
+962785d3b7f9: Pull complete
+631589572f9b: Pull complete
+c55a0c6f4c7b: Pull complete
+4e96cf3bdc20: Pull complete
+e0b44ce6ec69: Pull complete
+d961082c76f4: Pull complete
+5a229d171c71: Pull complete
+64514e4513d4: Pull complete
+
+
+Ste4---------------> ubuntu@ip-172-31-1-34:~/jenkins$ docker image ls
+REPOSITORY                           TAG                 IMAGE ID            CREATED             SIZE
+jenkins                              terraform           29b60a2f706d        27 seconds ago      1.42GB
